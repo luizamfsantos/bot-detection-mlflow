@@ -9,14 +9,6 @@ logging.basicConfig(
 )
 
 
-def run_command(command, env=None):
-    """Runs a shell command and ensures it completes successfully."""
-    result = subprocess.run(command, shell=True, env=env)
-    if result.returncode != 0:
-        logging.error(f"Command failed: {' '.join(command)}")
-        sys.exit(1)
-
-
 def setup_environment():
     logging.info("Setting up development environment...")
 
@@ -35,8 +27,11 @@ def setup_environment():
     subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"])
 
     # Install dependencies
-    requirements_file = "requirements-dev.txt" if os.path.exists(
-        "requirements-dev.txt") else "requirements.txt"
+    requirements_file = (
+        "requirements-dev.txt"
+        if os.path.exists("requirements-dev.txt")
+        else "requirements.txt"
+    )
     subprocess.run([venv_pip, "install", "-r", requirements_file])
 
     # Install pre-commit hooks if available
@@ -50,8 +45,7 @@ def setup_environment():
         activate_cmd = "source env/bin/activate"
 
     logging.info("Development environment setup complete!")
-    logging.info(
-        f"To activate the environment, run: {activate_cmd}")
+    logging.info(f"To activate the environment, run: {activate_cmd}")
 
 
 if __name__ == "__main__":
