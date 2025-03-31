@@ -29,21 +29,46 @@ def extract_coordinates(root: ET.Element) -> dict:
     except AttributeError:
         logging.info("Coordinate node not found in the XML file.")
         return {'rajd': None, 'decjd': None}
+    except ValueError:
+        logging.info("Error converting coordinate values to float.")
+        return {'rajd': None, 'decjd': None}
 
 
 def read_data_block(xmlnode: ET.Element) -> np.ndarray:
     """
     Turn any 'DataBlock' XML node into a numpy array of floats.
     """
-    value_min = float(xmlnode.get('min'))
-    value_max = float(xmlnode.get('max'))
-    string = xmlnode.text
-    string = string.replace("\t", "").replace(" ", "").replace("\n", "")
-    data = np.frombuffer(bytearray.fromhex(string), dtype=float)
-    return data * (value_max - value_min) / 255.0 + value_min
+    try:
+        value_min = float(xmlnode.get('min'))
+        value_max = float(xmlnode.get('max'))
+        string = xmlnode.text
+        string = string.replace("\t", "").replace(" ", "").replace("\n", "")
+        data = np.frombuffer(bytearray.fromhex(string), dtype=float)
+        return data * (value_max - value_min) / 255.0 + value_min
+    except ValueError:
+        logging.info("Error converting DataBlock to numpy array.")
+        return np.array([])
+    except AttributeError:
+        logging.info("DataBlock node not found in the XML file.")
+        return np.array([])
 
 
-def parse_pdmp_section(section: ET.Element) -> dict:
+def split_string_to_floats(string: str) -> np.ndarray:
+    """
+    Convert a space-separated string of floats into a numpy array.
+    """
+    try:
+        values = np.array([float(x) for x in string.split()])
+        return values
+    except ValueError:
+        logging.info("Error converting string to floats.")
+        return np.array([])
+    except AttributeError:
+        logging.info("String is None or empty.")
+        return np.array([])
+
+
+def parse_pdmp_section(opt_section: ET.Element) -> dict:
     """
     Parse the PDMP section of the XML file and return relevant data.
     """
@@ -51,67 +76,99 @@ def parse_pdmp_section(section: ET.Element) -> dict:
     # Best values as returned by PDMP
     opt_values = {
         node.tag: float(node.text)
-        for node in section.find('BestValues')
+        for node in opt_section.find('BestValues')
     }
-    data['bary_period'] = opt_values['BaryPeriod']
-    data['topo_period'] = opt_values['TopoPeriod']
-    data['dm'] = opt_values['Dm']
-    data['snr'] = opt_values['Snr']
-    data['width'] = opt_values['Width']
+    data['bary_period'] = opt_values.get('BaryPeriod')
+    data['topo_period'] = opt_values.get('TopoPeriod')
+    data['dm'] = opt_values.get('Dm')
+    data['snr'] = opt_values.get('Snr')
+    data['width'] = opt_values.get('Width')
 
     # P-DM plane
-    pdm_node = section.find('SnrBlock')
+    pdm_node = opt_section.find('SnrBlock')
+    if pdm_node is None:
+        logging.info("SnrBlock node not found in the XML file.")
+        data['dm_index'] = np.array([])
+        data['period_index'] = np.array([])
+        data['pdm_plane'] = np.array([])
+        data['subints'] = np.array([])
+        data['subbands'] = np.array([])
+        data['profile'] = np.array([])
+        return data
 
     # DmIndex
-    dm_index_string = pdm_node.find('DmIndex').text
-    dm_index = np.array([float(x) for x in dm_index_string.split()])
-    data['dm_index'] = dm_index
+    try:
+        dm_index_string = pdm_node.find('DmIndex').text
+        data['dm_index'] = split_string_to_floats(dm_index_string)
+    except AttributeError:
+        logging.info("DmIndex node not found in the XML file.")
+        data['dm_index'] = np.array([])
 
     # PeriodIndex
-    period_index_string = pdm_node.find('PeriodIndex').text
-    period_index = np.array([float(x) for x in period_index_string.split()]) / 1.0e12  # Picoseconds to seconds
-    data['period_index'] = period_index
+    try:
+        period_index_string = pdm_node.find('PeriodIndex').text
+        data['period_index'] = split_string_to_floats(period_index_string)
+    except AttributeError:
+        logging.info("PeriodIndex node not found in the XML file.")
+        data['period_index'] = np.array([])
 
     # S/N data
     pdm_data = pdm_node.find('DataBlock')
-    pdm_plane = read_data_block(pdm_data)
-    data['pdm_plane'] = pdm_plane
+    data['pdm_plane'] = read_data_block(pdm_data)
+
+    # Sub-Integrations
+    subints_node = opt_section.find('SubIntegrations')
+    data['subints'] = read_data_block(subints_node)
+
+    # Sub-Bands
+    subbands_node = opt_section.find('SubBands')
+    data['subbands'] = read_data_block(subbands_node)
+
+    # Profile
+    profile_node = opt_section.find('Profile')
+    data['profile'] = read_data_block(profile_node)
 
     return data
 
 
-def parse_fft_section(section: ET.Element) -> dict:
+def parse_fft_section(fft_section: ET.Element) -> dict:
     """
     Parse the FFT section of the XML file and return relevant data.
     """
     data = {}
-    # Best values as returned by FFT
+    # Parse FFT Section (PEASOUP Data)
     fft_values = {
         node.tag: float(node.text)
-        for node in section.find('BestValues')
+        for node in fft_section.find('BestValues')
     }
-    data['accn'] = fft_values['Accn']
-    data['hits'] = fft_values['Hits']
-    data['rank'] = fft_values['Rank']
-    data['fftsnr'] = fft_values['SpectralSnr']
+    data['accn'] = fft_values.get('Accn')
+    data['hits'] = fft_values.get('Hits')
+    data['rank'] = fft_values.get('Rank')
+    data['fftsnr'] = fft_values.get('SpectralSnr')
 
     # DmCurve
-    dmcurve_node = section.find('DmCurve')
-    dmcurve_string = dmcurve_node.find('DmValues').text
-    dm_values = np.array([float(x) for x in dmcurve_string.split()])
-    data['dm_values'] = dm_values
-    snr_string = dmcurve_node.find('SnrValues').text
-    snr_values = np.array([float(x) for x in snr_string.split()])
-    data['snr_values'] = snr_values
+    try:
+        dmcurve_node = fft_section.find('DmCurve')
+        dmcurve_string = dmcurve_node.find('DmValues').text
+        data['dm_values'] = split_string_to_floats(dmcurve_string)
+        snr_string = dmcurve_node.find('SnrValues').text
+        data['dm_curve_snr_values'] = split_string_to_floats(snr_string)
+    except AttributeError:
+        logging.info("DmCurve node not found in the XML file.")
+        data['dm_values'] = np.array([])
+        data['dm_curve_snr_values'] = np.array([])
 
     # AccnCurve
-    accncurve_node = section.find('AccnCurve')
-    accncurve_string = accncurve_node.find('AccnValues').text
-    accn_values = np.array([float(x) for x in accncurve_string.split()])
-    data['accn_values'] = accn_values
-    snr_string = accncurve_node.find('SnrValues').text
-    snr_values = np.array([float(x) for x in snr_string.split()])
-    data['snr_values'] = snr_values
+    try:
+        accncurve_node = fft_section.find('AccnCurve')
+        accncurve_string = accncurve_node.find('AccnValues').text
+        data['accn_values'] = split_string_to_floats(accncurve_string)
+        snr_string = accncurve_node.find('SnrValues').text
+        data['accn_curve_snr_values'] = split_string_to_floats(snr_string)
+    except AttributeError:
+        logging.info("AccnCurve node not found in the XML file.")
+        data['accn_values'] = np.array([])
+        data['accn_curve_snr_values'] = np.array([])
 
     return data
 
@@ -126,81 +183,11 @@ def parse_raw(file):
     # Read Coordinates
     data = extract_coordinates(root)
 
-    # Separate PDMP & FFT sections
+    # Parse PDMP & FFT sections
     for section in root.findall('Section'):
         if 'pdmp' in section.get('name').lower():
-            opt_section = section
-        else:
-            fft_section = section
+            data.extend(parse_pdmp_section(section))
+        elif 'fft' in section.get('name').lower():
+            data.extend(parse_fft_section(section))
 
-    # Best values as returned by PDMP
-    opt_values = {
-        node.tag: float(node.text)
-        for node in opt_section.find('BestValues')
-    }
-    data['bary_period'] = opt_values['BaryPeriod']
-    data['topo_period'] = opt_values['TopoPeriod']
-    data['dm'] = opt_values['Dm']
-    data['snr'] = opt_values['Snr']
-    data['width'] = opt_values['Width']
-
-    # P-DM plane
-    pdm_node = opt_section.find('SnrBlock')
-
-    # DmIndex
-    dm_index_string = pdm_node.find('DmIndex').text
-    dm_index = [float(x) for x in dm_index_string.split()]
-    dm_index = np.array(dm_index)
-    data['dm_index'] = dm_index
-
-    # PeriodIndex
-    period_index_string = pdm_node.find('PeriodIndex').text
-    period_index = [float(x) for x in period_index_string.split()]
-    period_index = np.array(period_index) / 1.0e12  # Picoseconds to seconds
-    data['period_index'] = period_index
-
-    # S/N data
-    pdm_data = pdm_node.find('DataBlock')
-    pdm_plane = read_data_block(pdm_data)
-    data['pdm_plane'] = pdm_plane
-
-    # Sub-Integrations
-    subints_node = opt_section.find('SubIntegrations')
-    data['subints'] = read_data_block(subints_node)
-
-    # Sub-Bands
-    subbands_node = opt_section.find('SubBands')
-    data['subbands'] = read_data_block(subbands_node)
-
-    # Profile 
-    profile_node = opt_section.find('Profile')
-    data['profile'] = read_data_block(profile_node)
-
-    # Parse FFT Section (PEASOUP Data)
-    fft_values = {
-        node.tag: float(node.text)
-        for node in fft_section.find('BestValues')
-    }
-    data['accn'] = fft_values['Accn']
-    data['hits'] = fft_values['Hits']
-    data['rank'] = fft_values['Rank']
-    data['fftsnr'] = fft_values['SpectralSnr']
-
-    # DmCurve
-    dmcurve_node = fft_section.find('DmCurve')
-    dmcurve_string = dmcurve_node.find('DmValues').text
-    dm_values = [float(x) for x in dmcurve_string.split()]
-    data['dm_values'] = np.array(dm_values)
-    snr_string = dmcurve_node.find('SnrValues').text
-    snr_values = [float(x) for x in snr_string.split()]
-    data['snr_values'] = np.array(snr_values)
-
-    # AccnCurve
-    accncurve_node = fft_section.find('AccnCurve')
-    accncurve_string = accncurve_node.find('AccnValues').text
-    accn_values = [float(x) for x in accncurve_string.split()]
-    data['accn_values'] = np.array(accn_values)
-    snr_string = accncurve_node.find('SnrValues').text
-    snr_values = [float(x) for x in snr_string.split()]
-    data['snr_values'] = np.array(snr_values)
     return data
