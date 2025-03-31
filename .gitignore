@@ -172,3 +172,6 @@ cython_debug/
 
 # pip cache
 .ruff_cache/
+
+# Large binary files
+*.pkl
