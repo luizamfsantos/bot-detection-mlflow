@@ -1,4 +1,5 @@
-# STEP DONE MANUALLY: download from drive: https://drive.google.com/drive/folders/0B3-6QHgPuBInTkNzLWREX3ZzUTg?resourcekey=0-VR5maZBUPhgEyjQ8GODSpw
+# STEP DONE MANUALLY: download from drive: https://drive.google.com/drive/
+# folders/0B3-6QHgPuBInTkNzLWREX3ZzUTg?resourcekey=0-VR5maZBUPhgEyjQ8GODSpw
 # Source: https://astronomy.swin.edu.au/~vmorello/
 
 # ################################################################################
@@ -87,6 +88,18 @@ def parse_pdmp_section(opt_section: ET.Element) -> dict:
     data['snr'] = opt_values.get('Snr')
     data['width'] = opt_values.get('Width')
 
+    # Sub-Integrations
+    subints_node = opt_section.find('SubIntegrations')
+    data['subints'] = read_data_block(subints_node)
+
+    # Sub-Bands
+    subbands_node = opt_section.find('SubBands')
+    data['subbands'] = read_data_block(subbands_node)
+
+    # Profile
+    profile_node = opt_section.find('Profile')
+    data['profile'] = read_data_block(profile_node)
+
     # P-DM plane
     pdm_node = opt_section.find('SnrBlock')
     if pdm_node is None:
@@ -94,9 +107,6 @@ def parse_pdmp_section(opt_section: ET.Element) -> dict:
         data['dm_index'] = np.array([])
         data['period_index'] = np.array([])
         data['pdm_plane'] = np.array([])
-        data['subints'] = np.array([])
-        data['subbands'] = np.array([])
-        data['profile'] = np.array([])
         return data
 
     # DmIndex
@@ -116,20 +126,8 @@ def parse_pdmp_section(opt_section: ET.Element) -> dict:
         data['period_index'] = np.array([])
 
     # S/N data
-    pdm_data = pdm_node.find('DataBlock')
-    data['pdm_plane'] = read_data_block(pdm_data)
-
-    # Sub-Integrations
-    subints_node = opt_section.find('SubIntegrations')
-    data['subints'] = read_data_block(subints_node)
-
-    # Sub-Bands
-    subbands_node = opt_section.find('SubBands')
-    data['subbands'] = read_data_block(subbands_node)
-
-    # Profile
-    profile_node = opt_section.find('Profile')
-    data['profile'] = read_data_block(profile_node)
+        pdm_data = pdm_node.find('DataBlock')
+        data['pdm_plane'] = read_data_block(pdm_data)
 
     return data
 
