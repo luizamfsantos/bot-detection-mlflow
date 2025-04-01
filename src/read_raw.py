@@ -6,6 +6,9 @@ import tarfile
 import xml.etree.cElementTree as ET
 import logging
 import numpy as np
+from pathlib import Path
+import os
+import pickle
 
 
 def extract_tar_gz(file_path: str) -> list[str]:
@@ -173,7 +176,7 @@ def parse_fft_section(fft_section: ET.Element) -> dict:
     return data
 
 
-def parse_raw(file):
+def parse_xml(file):
     """
     Parse a PHCX file and return the data as a dictionary.
     """
@@ -185,9 +188,30 @@ def parse_raw(file):
 
     # Parse PDMP & FFT sections
     for section in root.findall('Section'):
-        if 'pdmp' in section.get('name').lower():
+        if 'pdmp' in section.get('name', '').lower():
             data.extend(parse_pdmp_section(section))
-        elif 'fft' in section.get('name').lower():
+        elif 'fft' in section.get('name', '').lower():
             data.extend(parse_fft_section(section))
 
     return data
+
+
+def main():
+    folder_path = Path('data/raw')
+    # loop over tar gz files
+    for tar_file in folder_path.glob('**/*.tar.gz'):
+        # extract files inside tar gz
+        file_list = extract_tar_gz(tar_file)
+        # initialize list of dicts
+        data_list = []
+        # loop over extracted files
+        for xml_file in file_list:
+            # parse xml files
+            data = parse_xml(xml_file)
+            # delete parsed xml file
+            os.remove(xml_file)
+            # append data to list
+            data_list.append(data)
+        # export dict
+        with open(tar_file.with_suffix('.pkl'), 'wb') as f:
+            pickle.dump(data_list, f)
