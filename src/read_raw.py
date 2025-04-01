@@ -7,7 +7,7 @@ import tarfile
 import xml.etree.cElementTree as ET
 import logging
 import numpy as np
-from pathlib import Path
+from pathlib import Path, PosixPath
 import os
 import pickle
 
@@ -187,17 +187,30 @@ def parse_xml(file: str) -> dict:
     # Parse PDMP & FFT sections
     for section in root.findall('Section'):
         if 'pdmp' in section.get('name', '').lower():
-            data.extend(parse_pdmp_section(section))
+            data.update(parse_pdmp_section(section))
         elif 'fft' in section.get('name', '').lower():
-            data.extend(parse_fft_section(section))
+            data.update(parse_fft_section(section))
 
     return data
+
+
+def save_data(basename: str, data: dict, path: PosixPath, counter: int = None):
+    '''
+    Save the data to a pickle file.
+    '''
+    if counter is not None:
+        output_file = f"{basename.split('.')[0]}_{counter // 500}.pkl"
+    else:
+        output_file = f"{basename}.pkl"
+    with open(path.with_name(output_file), 'wb') as f:
+        pickle.dump(data, f)
 
 
 def main():
     folder_path = Path('data/raw')
     # loop over tar gz files
     for tar_file in folder_path.glob('**/*.tar.gz'):
+        counter = 0
         # extract files inside tar gz
         file_list = extract_tar_gz(tar_file)
         # initialize list of dicts
@@ -210,6 +223,18 @@ def main():
             os.remove(xml_file)
             # append data to list
             data_list.append(data)
-        # export dict
-        with open(tar_file.with_suffix('.pkl'), 'wb') as f:
-            pickle.dump(data_list, f)
+            # increment counter
+            counter += 1
+            # log progress
+            logging.info(f'Parsed {counter} files from {tar_file.name}.')
+            if counter % 500 == 0:
+                save_data(tar_file.stem, data_list, tar_file,  counter)
+                # reset data list
+                data_list = []
+        # save remaining data
+        if data_list:
+            save_data(tar_file.stem, data_list, tar_file, counter + 500)
+
+
+if __name__ == '__main__':
+    main()
