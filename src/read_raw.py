@@ -13,17 +13,17 @@ import pickle
 
 
 def extract_tar_gz(file_path: str) -> list[str]:
-    with tarfile.open(file_path, mode="r:gz") as tarobj:
+    with tarfile.open(file_path, mode='r:gz') as tarobj:
         tarobj.extractall()
         file_list = tarobj.getnames()
-    logging.info(f"Extracted {file_path} to current directory.")
+    logging.info(f'Extracted {file_path} to current directory.')
     return file_list
 
 
 def extract_coordinates(root: ET.Element) -> dict:
-    """
+    '''
     Extract coordinates from the XML root element.
-    """
+    '''
     try:
         coord_node = root.find('head').find('Coordinate')
         return {
@@ -31,51 +31,51 @@ def extract_coordinates(root: ET.Element) -> dict:
             'decjd': float(coord_node.find('Dec').text)
         }
     except AttributeError:
-        logging.info("Coordinate node not found in the XML file.")
+        logging.info('Coordinate node not found in the XML file.')
         return {'rajd': None, 'decjd': None}
     except ValueError:
-        logging.info("Error converting coordinate values to float.")
+        logging.info('Error converting coordinate values to float.')
         return {'rajd': None, 'decjd': None}
 
 
 def read_data_block(xmlnode: ET.Element) -> np.ndarray:
-    """
+    '''
     Turn any 'DataBlock' XML node into a numpy array of floats.
-    """
+    '''
     try:
         value_min = float(xmlnode.get('min'))
         value_max = float(xmlnode.get('max'))
         string = xmlnode.text
-        string = string.replace("\t", "").replace(" ", "").replace("\n", "")
+        string = string.replace('\t', '').replace(' ', '').replace('\n', '')
         data = np.frombuffer(bytearray.fromhex(string), dtype=float)
         return data * (value_max - value_min) / 255.0 + value_min
-    except ValueError:
-        logging.info("Error converting DataBlock to numpy array.")
+    except ValueError as ve:
+        logging.info(f'Error converting DataBlock to numpy array. {ve}')
         return np.array([])
-    except AttributeError:
-        logging.info("DataBlock node not found in the XML file.")
+    except AttributeError as ae:
+        logging.info(f'DataBlock node not found in the XML file. {ae}')
         return np.array([])
 
 
 def split_string_to_floats(string: str) -> np.ndarray:
-    """
+    '''
     Convert a space-separated string of floats into a numpy array.
-    """
+    '''
     try:
         values = np.array([float(x) for x in string.split()])
         return values
     except ValueError:
-        logging.info("Error converting string to floats.")
+        logging.info('Error converting string to floats.')
         return np.array([])
     except AttributeError:
-        logging.info("String is None or empty.")
+        logging.info('String is None or empty.')
         return np.array([])
 
 
 def parse_pdmp_section(opt_section: ET.Element) -> dict:
-    """
+    '''
     Parse the PDMP section of the XML file and return relevant data.
-    """
+    '''
     data = {}
     # Best values as returned by PDMP
     opt_values = {
@@ -103,7 +103,7 @@ def parse_pdmp_section(opt_section: ET.Element) -> dict:
     # P-DM plane
     pdm_node = opt_section.find('SnrBlock')
     if pdm_node is None:
-        logging.info("SnrBlock node not found in the XML file.")
+        logging.info('SnrBlock node not found in the XML file.')
         data['dm_index'] = np.array([])
         data['period_index'] = np.array([])
         data['pdm_plane'] = np.array([])
@@ -114,7 +114,7 @@ def parse_pdmp_section(opt_section: ET.Element) -> dict:
         dm_index_string = pdm_node.find('DmIndex').text
         data['dm_index'] = split_string_to_floats(dm_index_string)
     except AttributeError:
-        logging.info("DmIndex node not found in the XML file.")
+        logging.info('DmIndex node not found in the XML file.')
         data['dm_index'] = np.array([])
 
     # PeriodIndex
@@ -122,7 +122,7 @@ def parse_pdmp_section(opt_section: ET.Element) -> dict:
         period_index_string = pdm_node.find('PeriodIndex').text
         data['period_index'] = split_string_to_floats(period_index_string)
     except AttributeError:
-        logging.info("PeriodIndex node not found in the XML file.")
+        logging.info('PeriodIndex node not found in the XML file.')
         data['period_index'] = np.array([])
 
     # S/N data
@@ -133,9 +133,9 @@ def parse_pdmp_section(opt_section: ET.Element) -> dict:
 
 
 def parse_fft_section(fft_section: ET.Element) -> dict:
-    """
+    '''
     Parse the FFT section of the XML file and return relevant data.
-    """
+    '''
     data = {}
     # Parse FFT Section (PEASOUP Data)
     fft_values = {
@@ -155,7 +155,7 @@ def parse_fft_section(fft_section: ET.Element) -> dict:
         snr_string = dmcurve_node.find('SnrValues').text
         data['dm_curve_snr_values'] = split_string_to_floats(snr_string)
     except AttributeError:
-        logging.info("DmCurve node not found in the XML file.")
+        logging.info('DmCurve node not found in the XML file.')
         data['dm_values'] = np.array([])
         data['dm_curve_snr_values'] = np.array([])
 
@@ -167,7 +167,7 @@ def parse_fft_section(fft_section: ET.Element) -> dict:
         snr_string = accncurve_node.find('SnrValues').text
         data['accn_curve_snr_values'] = split_string_to_floats(snr_string)
     except AttributeError:
-        logging.info("AccnCurve node not found in the XML file.")
+        logging.info('AccnCurve node not found in the XML file.')
         data['accn_values'] = np.array([])
         data['accn_curve_snr_values'] = np.array([])
 
@@ -175,9 +175,9 @@ def parse_fft_section(fft_section: ET.Element) -> dict:
 
 
 def parse_xml(file):
-    """
+    '''
     Parse a PHCX file and return the data as a dictionary.
-    """
+    '''
     # Get the root of the XML tree
     root = ET.parse(file).getroot()
 
