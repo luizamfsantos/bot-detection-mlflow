@@ -48,8 +48,12 @@ def sample_xml():
                 <Dec>78.90</Dec>
             </Coordinate>
         </head>
-        <DataBlock min="0" max="255">00 01 02 03 04 05 06 07</DataBlock>
-        <DataBlock min="0" max="255">08 09 0A 0B 0C 0D 0E 0F</DataBlock>
+        <DataBlock min="-0.000211" max="0.000546">61147D55095B52502B3D635
+        76345DF72BE938198776E9EB8BABE6EC4FFD5BCB7A7F1AFFDD3C1B0B5
+    B6AB4071749499956A688E6955345F5127211F00553E9B53</DataBlock>
+        <DataBlock min="0" max="255">61147D55095B5
+        2502B3D63576345DF72BE938198776E9EB8BABE6EC4FFD5BCB7A7F1AFFDD3C1B0B5
+    B6AB4071749499956A688E6955345F5127211F00553E9B53</DataBlock>
     </root>"""
     return ET.ElementTree(ET.fromstring(xml_string)).getroot()
 
@@ -61,3 +65,15 @@ def test_extract_tar_gz(sample_tar_gz, tmp_path):
     extracted_file = tmp_path / file_list[0]
     assert extracted_file.exists()
 
+
+def test_extract_coordinates(sample_xml):
+    coords = extract_coordinates(sample_xml)
+    assert coords['rajd'] == 123.456
+    assert coords['decjd'] == 78.90
+
+
+def test_read_data_block(sample_xml):
+    data_blocks = sample_xml.findall('DataBlock')
+    data_arrays = [read_data_block(block) for block in data_blocks]
+    assert len(data_arrays) == 2
+    assert isinstance(data_arrays[0], np.ndarray)
