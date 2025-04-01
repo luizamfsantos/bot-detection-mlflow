@@ -2,17 +2,11 @@ import pytest
 import tarfile
 import xml.etree.ElementTree as ET
 import numpy as np
-import os
-import pickle
-from pathlib import Path
-import sys
 from src.read_raw import (
     extract_tar_gz,
     extract_coordinates,
     read_data_block,
     split_string_to_floats,
-    parse_pdmp_section,
-    parse_fft_section,
     parse_xml,
 )
 
@@ -77,3 +71,19 @@ def test_read_data_block(sample_xml):
     data_arrays = [read_data_block(block) for block in data_blocks]
     assert len(data_arrays) == 2
     assert isinstance(data_arrays[0], np.ndarray)
+
+
+def test_split_string_to_floats():
+    result = split_string_to_floats("1.0 2.0 3.0")
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (3,)
+    assert np.all(result == np.array([1.0, 2.0, 3.0]))
+
+
+def test_parse_xml(sample_xml, tmp_path):
+    xml_path = tmp_path / "parsed.xml"
+    ET.ElementTree(sample_xml).write(xml_path)
+    parsed_root = parse_xml(xml_path)
+    assert parsed_root is not None
+    assert 'rajd' in parsed_root
+    assert parsed_root['rajd'] == 123.456
