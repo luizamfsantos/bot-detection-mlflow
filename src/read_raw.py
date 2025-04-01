@@ -174,7 +174,7 @@ def parse_fft_section(fft_section: ET.Element) -> dict:
     return data
 
 
-def parse_xml(file):
+def parse_xml(file: str) -> dict:
     '''
     Parse a PHCX file and return the data as a dictionary.
     '''
