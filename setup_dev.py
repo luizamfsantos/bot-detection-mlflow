@@ -37,7 +37,7 @@ def setup_environment():
     # Install pre-commit hooks if available
     if os.path.exists(".pre-commit-config.yaml"):
         subprocess.run([venv_python, "-m", "pip", "install", "pre-commit"])
-        subprocess.run([venv_python, "-m", "pre-commit", "install"])
+        subprocess.run([venv_python, "-m", "pre_commit", "install"])
 
     if sys.platform == "win32":
         activate_cmd = os.path.join("env", "Scripts", "activate")
