@@ -39,6 +39,12 @@ def setup_environment():
         subprocess.run([venv_python, "-m", "pip", "install", "pre-commit"])
         subprocess.run([venv_python, "-m", "pre_commit", "install"])
 
+    # Install Jupyter kernel if Jupyter is installed
+    if os.path.exists("env/bin/jupyter") or os.path.exists("env/Scripts/jupyter.exe"):
+        subprocess.run(
+            [venv_python, "-m", "ipykernel", "install", "--user", "--name=po233-env"]
+        )
+
     if sys.platform == "win32":
         activate_cmd = os.path.join("env", "Scripts", "activate")
     else:
