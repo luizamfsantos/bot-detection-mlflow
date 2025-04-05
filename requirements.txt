@@ -16,3 +16,4 @@ seaborn==0.13.*
 matplotlib==3.10.*
 scipy==1.15.*
 scikit-learn==1.6.*
+pathlib==1.0.*
