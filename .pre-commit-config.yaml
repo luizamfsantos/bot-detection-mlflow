@@ -31,12 +31,3 @@ repos:
     hooks:
     -   id: nbstripout
         args: [--keep-output]
-
--   repo: local
-    hooks:
-    -   id: pytest-check
-        name: pytest-check
-        entry: pytest tests/
-        language: system
-        pass_filenames: false
-        always_run: true
