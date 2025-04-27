@@ -64,6 +64,13 @@ def run_experiment(
     with mlflow.start_run(run_name=pipeline_name):
         # log metadata
         mlflow.set_tag("algorithm", pipeline_name)
+        mlflow.sklearn.log_model(clf, "pipeline")
+        steps_info = {
+            name: str(estimator)
+            for name, estimator in clf.estimator.named_steps.items()
+        }
+        mlflow.log_param("steps", str(steps_info))
+        mlflow.log_param("pipeline_params", str(pipeline_params))
 
         # perform cross-validation
         cv_scores = cross_val_score(clf, X, ycla, cv=cv)
