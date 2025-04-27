@@ -32,3 +32,14 @@ def cv():
 @pytest.fixture
 def scorer():
     return make_scorer(accuracy_score)
+
+
+@pytest.fixture
+def mock_config():
+    return {
+        "experiment_name": "test_experiment",
+        "pipelines": ["knn", "tree"],
+        "cv_folds": 5,
+        "grid_cv_folds": 2,
+        "pipeline_params": {"knn": {"n_neighbors": [1, 3]}},
+    }
