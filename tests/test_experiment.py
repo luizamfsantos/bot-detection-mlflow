@@ -1,9 +1,10 @@
 from collections.abc import Callable
 
+import pandas as pd
 import pytest
 from sklearn.model_selection import GridSearchCV
 
-from src.experiment import load_pipeline_config
+from src.experiment import load_pipeline_config, run_experiment
 
 
 def test_load_pipeline_config_success_real_module(cv, scorer):
@@ -29,3 +30,12 @@ def test_load_pipeline_config_attribute_error(monkeypatch):
 
     with pytest.raises(ValueError, match="Pipeline bad_pipeline not found:"):
         load_pipeline_config("bad_pipeline")
+
+
+def test_run_experiment(monkeypatch, sample_data, mock_config):
+    def mock_load_data() -> pd.DataFrame:
+        return sample_data
+
+    monkeypatch.setattr("src.experiment.load_data", mock_load_data)
+
+    run_experiment(mock_config)
