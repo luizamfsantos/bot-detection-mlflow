@@ -1,4 +1,5 @@
 import json
+import os
 from collections.abc import Callable
 from importlib import import_module
 
@@ -7,6 +8,8 @@ from sklearn.metrics import accuracy_score, make_scorer
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 from src.data_processing import load_data
+
+SEED = os.environ.get("SEED", 27)
 
 
 def load_pipeline_config(pipeline_name: str) -> Callable:
@@ -21,8 +24,20 @@ def load_pipeline_config(pipeline_name: str) -> Callable:
         raise ValueError(f"Pipeline {pipeline_name} not found: {e}")
 
 
+def get_experiment_id(experiment_name: str) -> int:
+    experiment = mlflow.get_experiment_by_name(experiment_name)
+    if experiment:
+        experiment_id = experiment.experiment_id
+    else:
+        experiment_id = mlflow.create_experiment(experiment_name)
+    return experiment_id
+
+
 def run_experiment(
-    config, tracking_uri="http://127.0.0.1:8080", output_basename: str = "results/"
+    config,
+    tracking_uri: str = "http://127.0.0.1:8080",
+    output_basename: str = "results/",
+    seed: int = SEED,
 ) -> None:
     # extract config values
     experiment_name = config["experiment_name"]
@@ -35,12 +50,7 @@ def run_experiment(
     # set tracking server uri for logging
     mlflow.set_tracking_uri(uri=tracking_uri)
 
-    # create or get experiment
-    experiment = mlflow.get_experiment_by_name(experiment_name)
-    if experiment:
-        experiment_id = experiment.experiment_id
-    else:
-        experiment_id = mlflow.create_experiment(experiment_name)
+    experiment_id = get_experiment_id(experiment_name)
     mlflow.set_experiment(experiment_id=experiment_id)
 
     # define scorers and cross-validation strategies
