@@ -3,7 +3,10 @@ import pytest
 from sklearn.metrics import accuracy_score, make_scorer
 from sklearn.model_selection import StratifiedKFold
 
-SEED = 42
+
+@pytest.fixture
+def seed():
+    return 42
 
 
 @pytest.fixture
@@ -24,8 +27,8 @@ def mock_mlflow_environment(monkeypatch):
 
 
 @pytest.fixture
-def cv():
-    return StratifiedKFold(n_splits=3, shuffle=True, random_state=SEED)
+def cv(seed):
+    return StratifiedKFold(n_splits=3, shuffle=True, random_state=seed)
 
 
 @pytest.fixture

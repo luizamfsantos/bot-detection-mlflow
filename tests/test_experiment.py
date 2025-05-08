@@ -32,6 +32,7 @@ def test_load_pipeline_config_attribute_error(monkeypatch):
         load_pipeline_config("bad_pipeline")
 
 
+@pytest.mark.skip(reason="require running mlflow")
 def test_run_experiment(monkeypatch, sample_data, mock_config):
     def mock_load_data() -> pd.DataFrame:
         return sample_data

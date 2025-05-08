@@ -30,12 +30,11 @@ def mock_path_exists_false():
 def dummy_df():
     return pd.DataFrame(
         {
-            "user_id": [1, 2],
-            "has_domain": [True, False],
-            "has_short_name": [False, True],
-            "has_first_name": [True, True],
+            "has_domain": [0.0, 1.0],
+            "has_short_name": [0.0, 1.0],
+            "has_first_name": [1.0, 1.0],
             "city": ["CityA", "CityB"],
-            "other_feature": [10, 20],
+            "other_feature": [10.0, 20.0],
         }
     )
 
