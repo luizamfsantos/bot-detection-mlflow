@@ -4,6 +4,7 @@ from collections.abc import Callable
 from importlib import import_module
 
 import mlflow
+import numpy as np
 from sklearn.metrics import accuracy_score, make_scorer
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
@@ -84,7 +85,26 @@ def run_experiment(
 
         # perform cross-validation
         cv_scores = cross_val_score(clf, X, ycla, cv=cv)
-        output_file = output_basename + f"{experiment_name}_{pipeline_name}.json"
+        output_file = (
+            output_basename + f"{experiment_name}_{pipeline_name}_cross_val_scores.json"
+        )
         with open(output_file, "w") as f:
             json.dump({pipeline_name: cv_scores.tolist()}, f)
+        mlflow.log_artifact(output_file)
+
+        # get best hyperparameters
+        clf.fit(X, ycla)
+        output_file = (
+            output_basename + f"{experiment_name}_{pipeline_name}_hyperparameters.json"
+        )
+        serializable_results = {}
+        for key, value in clf.cv_results_.items():
+            if isinstance(value, np.ndarray):
+                serializable_results[key] = value.tolist()
+            else:
+                serializable_results[key] = value
+
+        with open(output_file, "w") as f:
+            json.dump({pipeline_name: serializable_results}, f)
+
         mlflow.log_artifact(output_file)

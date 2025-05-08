@@ -26,7 +26,7 @@ def test_create_pipeline_custom_params(cv, scorer):
     custom_params = {
         "thresholds": [0.1, 0.2],
         "n_neighbors": [10, 20],
-        "p_values": [3, 4],
+        "power_parameter": [1, 2],
     }
 
     # Call function with custom parameters
@@ -35,7 +35,7 @@ def test_create_pipeline_custom_params(cv, scorer):
     # Check that the parameters were applied correctly
     assert pipeline.param_grid["selector__threshold"] == [0.1, 0.2]
     assert pipeline.param_grid["knn__n_neighbors"] == [10, 20]
-    assert pipeline.param_grid["knn__p"] == [3, 4]
+    assert pipeline.param_grid["knn__p"] == [1, 2]
 
 
 def test_create_pipeline_missing_params(cv, scorer):
