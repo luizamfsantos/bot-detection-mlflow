@@ -10,7 +10,7 @@ def test_create_pipeline_default_params(cv, scorer):
 
     assert isinstance(pipeline, GridSearchCV)
     steps = pipeline.estimator.named_steps
-    assert "features" in steps
+    assert "imputer" in steps
     assert "scaler" in steps
     assert "selector" in steps
     assert "knn" in steps
