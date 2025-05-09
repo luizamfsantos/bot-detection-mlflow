@@ -47,6 +47,7 @@ def run_experiment(
     grid_cv_folds = config["grid_cv_folds"]
     seed = config["seed"]
     pipeline_params = config["pipeline_params"]
+    pipeline_params["seed"] = seed
 
     # set tracking server uri for logging
     mlflow.set_tracking_uri(uri=tracking_uri)
