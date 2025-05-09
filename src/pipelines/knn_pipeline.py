@@ -1,9 +1,9 @@
 import logging
 
 from sklearn.feature_selection import VarianceThreshold
-from sklearn.impute import MissingIndicator, SimpleImputer
+from sklearn.impute import SimpleImputer
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 
 from src.pipelines.base import create_grid_search
