@@ -8,7 +8,7 @@ from src.pipelines.base import create_grid_search
 
 
 def create_pipeline(gscv, scorer, **kwargs):
-    """Create a KNN pipeline with grid search"""
+    """Create a tree pipeline with grid search"""
     max_depth = kwargs.get("max_depth", [5, 10, 20, None])
     min_samples_split = kwargs.get("min_samples_split", [2, 5, 10])
     criterion = kwargs.get("criterion", ["gini", "entropy", "log_loss"])
