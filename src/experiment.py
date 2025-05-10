@@ -1,6 +1,6 @@
 import json
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Mapping
 from importlib import import_module
 
 import mlflow
@@ -32,6 +32,26 @@ def get_experiment_id(experiment_name: str) -> int:
     else:
         experiment_id = mlflow.create_experiment(experiment_name)
     return experiment_id
+
+
+def make_serializable(obj):
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif callable(obj):
+        return obj.__name__
+    elif isinstance(obj, Mapping):
+        return {k: make_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, str):  # Leave strings as-is
+        return obj
+    elif isinstance(obj, Iterable) and not isinstance(obj, str):
+        return [make_serializable(v) for v in obj]
+    else:
+        obj = str(obj)
+        try:
+            json.dumps(obj)  # test if serializable
+            return obj
+        except TypeError:
+            return str(obj)
 
 
 def run_experiment(
@@ -98,14 +118,10 @@ def run_experiment(
         output_file = (
             output_basename + f"{experiment_name}_{pipeline_name}_hyperparameters.json"
         )
-        serializable_results = {}
-        for key, value in clf.cv_results_.items():
-            if isinstance(value, np.ndarray):
-                serializable_results[key] = value.tolist()
-            else:
-                serializable_results[key] = value
-
+        serializable_results = {
+            k: make_serializable(v) for k, v in clf.cv_results_.items()
+        }
         with open(output_file, "w") as f:
-            json.dump({pipeline_name: serializable_results}, f)
+            json.dump({pipeline_name: serializable_results}, f, default=str)
 
         mlflow.log_artifact(output_file)
