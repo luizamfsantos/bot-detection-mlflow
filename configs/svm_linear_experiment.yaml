@@ -1,0 +1,9 @@
+experiment_name: "svm_linear_experiment"
+pipeline: "svm_linear"
+cv_folds: 15
+grid_cv_folds: 3
+seed: 17
+pipeline_params:
+  n_pca_components: [2, 5]
+  svm_regularization: [1.0]
+  impute_strategy: ["mean", "most_frequent"]
