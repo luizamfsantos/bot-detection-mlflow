@@ -12,7 +12,7 @@ def create_pipeline(gscv, scorer, **kwargs):
     max_depth = kwargs.get("max_depth", [5, 10, 20, None])
     min_samples_split = kwargs.get("min_samples_split", [2, 5, 10])
     criterion = kwargs.get("criterion", ["gini", "entropy", "log_loss"])
-    impute_strategy = kwargs.get("impute_strategy", "mean")
+    impute_strategy = kwargs.get("impute_strategy", ["mean"])
     seed = kwargs.get("seed", 27)
 
     pipeline = Pipeline(

@@ -14,6 +14,7 @@ def create_pipeline(gscv, scorer, **kwargs):
     impute_strategy = kwargs.get("impute_strategy", ["mean"])
     n_pca_components = kwargs.get("n_pca_components", [2, 5, 10])
     svm_regularization = kwargs.get("svm_regularization", [0.1, 1, 10, 100])
+    svm_gamma = kwargs.get("svm_gamma", [0.1, 1.0, 2.0])
     seed = kwargs.get("seed", 27)
 
     pipeline = Pipeline(
@@ -21,7 +22,7 @@ def create_pipeline(gscv, scorer, **kwargs):
             ("imputer", SimpleImputer(add_indicator=True)),
             ("scaler", StandardScaler()),
             ("pca", PCA()),
-            ("svm", SVC(kernel="linear", random_state=seed, max_iter=100000)),
+            ("svm", SVC(kernel="rbf", random_state=seed, max_iter=100000)),
         ]
     )
 
@@ -29,6 +30,7 @@ def create_pipeline(gscv, scorer, **kwargs):
         "imputer__strategy": impute_strategy,
         "pca__n_components": n_pca_components,
         "svm__C": svm_regularization,
+        "svm__gamma": svm_gamma,
     }
     logging.info(
         f"""

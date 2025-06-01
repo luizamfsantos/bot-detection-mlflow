@@ -178,3 +178,13 @@ cython_debug/
 
 # Data files
 *.csv
+
+# MlFlow tracking
+mlruns/
+mlartifacts/
+
+# Run results
+results/*.json
+
+#  macOS specific files
+.DS_Store
