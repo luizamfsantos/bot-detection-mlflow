@@ -13,14 +13,16 @@ results = {}
 for file in file_list:
     with open(file, "r") as f:
         results_tmp = json.load(f)
-    results[file.stem] = list(results_tmp.values())[0]
+    filename = file.stem.split("_cross_val_scores")[0].split("_experiment_")[-1]
+    results[filename] = list(results_tmp.values())[0]
 
-results_array = np.array(list(results.values()))
-stats, p_value = friedmanchisquare(*results_array)
+labels = list(results.keys())
+data = np.array(list(results.values()))
+stats, p_value = friedmanchisquare(*data)
 print(f"Test statistics: {stats}. P-value: {p_value}")
-nemenyi = posthoc_nemenyi_friedman(results_array.T)
-nemenyi.index = list(results.keys())
-nemenyi.columns = list(results.keys())
+nemenyi = posthoc_nemenyi_friedman(data.T)
+nemenyi.index = labels
+nemenyi.columns = labels
 nemenyi.to_csv("results/statistical_tests.csv")
 significant_pairs = [
     (row, col, nemenyi.loc[row, col])
