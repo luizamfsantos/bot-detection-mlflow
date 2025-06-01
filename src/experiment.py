@@ -59,6 +59,7 @@ def run_experiment(
     tracking_uri: str = "http://127.0.0.1:8080",
     output_basename: str = "results/",
     seed: int = SEED,
+    remove_missing=False,
 ) -> None:
     # extract config values
     experiment_name = config["experiment_name"]
@@ -82,7 +83,7 @@ def run_experiment(
     gscv = StratifiedKFold(n_splits=grid_cv_folds, shuffle=True, random_state=seed)
 
     # load data
-    df = load_data()
+    df = load_data(remove_missing=remove_missing)
     X = df.drop(columns=["target"])
     ycla = df["target"] > 0
 

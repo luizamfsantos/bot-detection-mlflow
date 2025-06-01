@@ -16,6 +16,7 @@ def save_dataset() -> None:
 
 def load_data(
     raw_data_path: str = raw_data_path,
+    remove_missing: bool = False,
 ) -> pd.DataFrame:
     raw_data_path = Path(raw_data_path)
     if not raw_data_path.exists():
@@ -26,4 +27,6 @@ def load_data(
     # update later
     # for now, remove city
     df_raw = df_raw.drop(columns=["city"])
+    if remove_missing:
+        df_raw = df_raw.dropna(thresh=len(df_raw.index) // 2, axis=1)
     return df_raw

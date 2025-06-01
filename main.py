@@ -19,6 +19,10 @@ def main():
         default="http://127.0.0.1:8080",
         help="MLflow tracking server URI",
     )
+    parser.add_argument(
+        "--remove_missing",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -27,7 +31,9 @@ def main():
         config = yaml.safe_load(f)
 
     # Run the experiment
-    run_experiment(config, tracking_uri=args.tracking_uri)
+    run_experiment(
+        config, tracking_uri=args.tracking_uri, remove_missing=args.remove_missing
+    )
 
 
 if __name__ == "__main__":
