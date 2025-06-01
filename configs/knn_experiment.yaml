@@ -1,4 +1,4 @@
-experiment_name: "knn_experiment2"
+experiment_name: "knn_experiment"
 pipeline: "knn"
 cv_folds: 15
 grid_cv_folds: 3
@@ -7,4 +7,4 @@ pipeline_params:
   thresholds: [0.0001]
   n_neighbors: [5, 7, 9]
   power_parameter: [1, 2] # 1: Manhattan, 2: Euclidean
-  impute_strategy: ["mean", "most_frequent"]
+  impute_strategy: ["mean"]

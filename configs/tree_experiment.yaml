@@ -7,4 +7,4 @@ pipeline_params:
   max_depth: [5, 10, 20, null]
   min_samples_split: [2, 5, 10]
   criterion: ['gini', 'entropy']
-  impute_strategy: ["mean", "most_frequent"]
+  impute_strategy: ["mean"]
