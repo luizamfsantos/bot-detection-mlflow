@@ -185,3 +185,6 @@ mlartifacts/
 
 # Run results
 results/*.json
+
+#  macOS specific files
+.DS_Store
