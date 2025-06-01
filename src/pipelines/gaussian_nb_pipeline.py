@@ -33,7 +33,7 @@ def get_selector_function(func: str | Callable) -> Callable | None:
 
 def create_pipeline(gscv, scorer, **kwargs):
     """Create a Gaussian Naive Bayes pipeline with grid search"""
-    impute_strategy = kwargs.get("impute_strategy", "mean")
+    impute_strategy = kwargs.get("impute_strategy", ["mean"])
     num_top_features = kwargs.get("num_top_features", [3, 5, 10])
     default_score_func = [f_classif]
     selector_score_func = kwargs.get("selector_score_func", default_score_func)

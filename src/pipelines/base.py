@@ -15,4 +15,6 @@ def create_grid_search(pipeline, param_grid, gscv, scorer):
     Returns:
         GridSearchCV: Configured grid search object
     """
-    return GridSearchCV(pipeline, param_grid=param_grid, scoring=scorer, cv=gscv)
+    return GridSearchCV(
+        pipeline, param_grid=param_grid, scoring=scorer, cv=gscv, verbose=3
+    )

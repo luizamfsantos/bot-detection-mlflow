@@ -11,7 +11,7 @@ from src.pipelines.base import create_grid_search
 
 def create_pipeline(gscv, scorer, **kwargs):
     """Create a KNN pipeline with grid search"""
-    impute_strategy = kwargs.get("impute_strategy", "mean")
+    impute_strategy = kwargs.get("impute_strategy", ["mean"])
     n_pca_components = kwargs.get("n_pca_components", [2, 5, 10])
     svm_regularization = kwargs.get("svm_regularization", [0.1, 1, 10, 100])
     seed = kwargs.get("seed", 27)

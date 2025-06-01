@@ -14,7 +14,7 @@ def create_pipeline(gscv, scorer, **kwargs):
     thresholds = kwargs.get("thresholds", [0, 0.01, 0.02, 0.03])
     n_neighbors = kwargs.get("n_neighbors", [1, 3, 5, 7, 9])
     power_parameter = kwargs.get("power_parameter", [1, 2])
-    impute_strategy = kwargs.get("impute_strategy", "mean")
+    impute_strategy = kwargs.get("impute_strategy", ["mean"])
 
     pipeline = Pipeline(
         [
