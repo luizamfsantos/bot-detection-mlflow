@@ -22,7 +22,7 @@ def create_pipeline(gscv, scorer, **kwargs):
             ("imputer", SimpleImputer(add_indicator=True)),
             ("scaler", StandardScaler()),
             ("pca", PCA()),
-            ("svm", SVC(kernel="rbf", random_state=seed)),
+            ("svm", SVC(kernel="rbf", random_state=seed, max_iter=100000)),
         ]
     )
 

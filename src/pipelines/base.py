@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.model_selection import GridSearchCV
 
 
@@ -16,5 +17,10 @@ def create_grid_search(pipeline, param_grid, gscv, scorer):
         GridSearchCV: Configured grid search object
     """
     return GridSearchCV(
-        pipeline, param_grid=param_grid, scoring=scorer, cv=gscv, verbose=3
+        pipeline,
+        param_grid=param_grid,
+        scoring=scorer,
+        cv=gscv,
+        verbose=3,
+        error_score=np.nan,
     )
