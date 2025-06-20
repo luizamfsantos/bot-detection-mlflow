@@ -1,20 +1,25 @@
 import json
-from pathlib import Path
+from pathlib import Path, PosixPath
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scikit_posthocs import posthoc_nemenyi_friedman
+from scikit_posthocs import critical_difference_diagram, posthoc_nemenyi_friedman
 from scipy.stats import friedmanchisquare
 
 
-def calculate_stats_test(file_list):
+def get_results_dict(file_list: PosixPath | list) -> dict:
     results = {}
     for file in file_list:
         with open(file, "r") as f:
             results_tmp = json.load(f)
         filename = file.stem.split("_cross_val_scores")[0].split("_experiment_")[-1]
         results[filename] = list(results_tmp.values())[0]
+    return results
 
+
+def calculate_stats_test(file_list):
+    results = get_results_dict(file_list)
     labels = list(results.keys())
     data = np.array(list(results.values()))
     stats, p_value = friedmanchisquare(*data)
@@ -32,9 +37,30 @@ def calculate_stats_test(file_list):
     print(significant_pairs)
 
 
+def generate_critical_difference_diagram(file_list):
+    results = get_results_dict(file_list)
+    labels = list(results.keys())
+    data = np.array(list(results.values()))
+    # TODO: calculate average rank for each algorithm
+    avg_rank = {alg: np.mean(vals) for alg, vals in results.items()}
+    # TODO: calculate nemenyi stats
+    nemenyi = posthoc_nemenyi_friedman(data.T)
+    nemenyi.index = labels
+    nemenyi.columns = labels
+    plt.figure(figsize=(10, 2), dpi=100)
+    plt.title("Critical difference diagram of average accuracy ranks.")
+    critical_difference_diagram(avg_rank, nemenyi)
+
+
 results_path = Path("results")
 assert results_path.exists()
-file_list_complete = results_path.glob("complete/*cross_val_scores*.json")
-file_list_subset = results_path.glob("subset/*cross_val_scores*.json")
+file_list_complete = list(results_path.glob("complete/*cross_val_scores*.json"))
+file_list_subset = list(results_path.glob("subset/*cross_val_scores*.json"))
 calculate_stats_test(file_list_complete)
 calculate_stats_test(file_list_subset)
+generate_critical_difference_diagram(file_list_complete)
+plt.savefig("dataset_complete.png")
+plt.close()
+generate_critical_difference_diagram(file_list_subset)
+plt.savefig("dataset_subset.png")
+plt.close()
