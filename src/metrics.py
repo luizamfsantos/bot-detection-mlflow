@@ -7,6 +7,15 @@ import pandas as pd
 from scikit_posthocs import critical_difference_diagram, posthoc_nemenyi_friedman
 from scipy.stats import friedmanchisquare
 
+plt.rcParams.update(
+    {
+        "font.family": "Arial",  # "serif", # "DejaVu Sans",  # or "Arial", "Helvetica"
+        "font.size": 12,
+        "axes.titlesize": 14,
+        "axes.labelsize": 12,
+    }
+)
+
 
 def get_results_dict(file_list: PosixPath | list) -> dict:
     results = {}
@@ -47,9 +56,10 @@ def generate_critical_difference_diagram(file_list):
     nemenyi = posthoc_nemenyi_friedman(data.T)
     nemenyi.index = labels
     nemenyi.columns = labels
-    plt.figure(figsize=(10, 2), dpi=100)
-    plt.title("Critical difference diagram of average accuracy ranks.")
+    plt.figure(figsize=(10, 3), dpi=100)
+    plt.title("Critical difference diagram ($\\alpha = 0.05$)")
     critical_difference_diagram(avg_rank, nemenyi)
+    plt.tight_layout()
 
 
 results_path = Path("results")
@@ -59,8 +69,8 @@ file_list_subset = list(results_path.glob("subset/*cross_val_scores*.json"))
 calculate_stats_test(file_list_complete)
 calculate_stats_test(file_list_subset)
 generate_critical_difference_diagram(file_list_complete)
-plt.savefig("dataset_complete.png")
+plt.savefig("results/images/cd_diagram_complete.png", dpi=300, bbox_inches="tight")
 plt.close()
 generate_critical_difference_diagram(file_list_subset)
-plt.savefig("dataset_subset.png")
+plt.savefig("results/images/cd_diagram_subset.png", dpi=300, bbox_inches="tight")
 plt.close()
