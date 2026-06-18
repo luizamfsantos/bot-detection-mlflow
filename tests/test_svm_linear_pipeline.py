@@ -1,4 +1,5 @@
 from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
 
 from src.pipelines.svm_linear_pipeline import create_pipeline
 
@@ -9,39 +10,32 @@ def test_create_pipeline_default_params(cv, scorer):
     assert isinstance(pipeline, GridSearchCV)
     steps = pipeline.estimator.named_steps
     assert "imputer" in steps
-    assert "tree" in steps
-    assert isinstance(steps["tree"], DecisionTreeClassifier)
+    assert "scaler" in steps
+    assert "pca" in steps
+    assert "svm" in steps
+    assert isinstance(steps["svm"], SVC)
+    assert steps["svm"].kernel == "linear"
 
     assert "imputer__strategy" in pipeline.param_grid
-    assert "tree__max_depth" in pipeline.param_grid
-    assert "tree__min_samples_split" in pipeline.param_grid
-    assert "tree__criterion" in pipeline.param_grid
+    assert "pca__n_components" in pipeline.param_grid
+    assert "svm__C" in pipeline.param_grid
 
 
 def test_create_pipeline_custom_params(cv, scorer):
-    # Custom parameters
     custom_params = {
-        "max_depth": [5, 10],
-        "min_samples_split": [2, 5],
-        "criterion": ["gini", "entropy"],
+        "n_pca_components": [3, 7],
+        "svm_regularization": [0.01, 1.0],
     }
 
-    # Call function with custom parameters
     pipeline = create_pipeline(gscv=cv, scorer=scorer, **custom_params)
 
-    # Check that the parameters were applied correctly
-    assert pipeline.param_grid["tree__max_depth"] == [5, 10]
-    assert pipeline.param_grid["tree__min_samples_split"] == [2, 5]
-    assert pipeline.param_grid["tree__criterion"] == ["gini", "entropy"]
+    assert pipeline.param_grid["pca__n_components"] == [3, 7]
+    assert pipeline.param_grid["svm__C"] == [0.01, 1.0]
 
 
 def test_create_pipeline_missing_params(cv, scorer):
-    # Call with only some parameters provided
-    pipeline = create_pipeline(
-        gscv=cv, scorer=scorer, max_depth=[5]  # Only override max_depth
-    )
+    pipeline = create_pipeline(gscv=cv, scorer=scorer, n_pca_components=[5])
 
-    # Check that default values were used for non-provided parameters
-    assert pipeline.param_grid["tree__max_depth"] == [5]  # Custom value
-    assert pipeline.param_grid["tree__min_samples_split"] == [2, 5, 10]
-    assert pipeline.param_grid["tree__criterion"] == ["gini", "entropy", "log_loss"]
+    assert pipeline.param_grid["pca__n_components"] == [5]
+    assert pipeline.param_grid["svm__C"] == [0.1, 1, 10, 100]
+    assert pipeline.param_grid["imputer__strategy"] == ["mean"]
