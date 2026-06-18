@@ -1,0 +1,12 @@
+experiment_name: "mlp_experiment"
+pipeline: "mlp"
+cv_folds: 15
+grid_cv_folds: 3
+seed: 17
+pipeline_params:
+  hidden_units: [32, 64, 128]
+  dropout_rates: [0.2, 0.3]
+  learning_rates: [0.001, 0.0001]
+  epochs: 50
+  batch_size: 32
+  impute_strategy: ["mean"]

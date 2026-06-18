@@ -1,0 +1,9 @@
+experiment_name: "gbt_experiment"
+pipeline: "gbt"
+cv_folds: 15
+grid_cv_folds: 3
+seed: 17
+pipeline_params:
+  num_trees: [100, 300]
+  max_depth: [4, 6, 8]
+  impute_strategy: ["mean"]
